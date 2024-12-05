@@ -593,6 +593,40 @@ async function defaultRulesetsFromLanguage() {
 
 /******************************************************************************/
 
+async function patchDefaultRulesets() {
+    const [
+        oldDefaultIds = [],
+        newDefaultIds,
+        newIds,
+    ] = await Promise.all([
+        localRead('defaultRulesetIds'),
+        defaultRulesetsFromLanguage(),
+        getRulesetDetails(),
+    ]);
+    const toAdd = [];
+    const toRemove = [];
+    for ( const id of newDefaultIds ) {
+        if ( oldDefaultIds.includes(id) ) { continue; }
+        toAdd.push(id);
+    }
+    for ( const id of oldDefaultIds ) {
+        if ( newDefaultIds.includes(id) ) { continue; }
+        toRemove.push(id);
+    }
+    for ( const id of rulesetConfig.enabledRulesets ) {
+        if ( newIds.has(id) ) { continue; }
+        toRemove.push(id);
+    }
+    localWrite('defaultRulesetIds', newDefaultIds);
+    if ( toAdd.length === 0 && toRemove.length === 0 ) { return; }
+    const enabledRulesets = new Set(rulesetConfig.enabledRulesets);
+    toAdd.forEach(id => enabledRulesets.add(id));
+    toRemove.forEach(id => enabledRulesets.delete(id));
+    rulesetConfig.enabledRulesets = Array.from(enabledRulesets);
+}
+
+/******************************************************************************/
+
 async function enableRulesets(ids) {
     const afterIds = new Set(ids);
     const [ beforeIds, adminIds, rulesetDetails ] = await Promise.all([
@@ -681,6 +715,7 @@ export {
     filteringModesToDNR,
     getRulesetDetails,
     getEnabledRulesetsDetails,
+    patchDefaultRulesets,
     setStrictBlockMode,
     updateDynamicRules,
 };
