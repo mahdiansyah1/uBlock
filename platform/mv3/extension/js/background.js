@@ -377,6 +377,8 @@ function onMessage(request, sender, callback) {
 async function start() {
     await loadRulesetConfig();
 
+    // Potentially enable new default rulesets
+
     const rulesetsUpdated = process.wakeupRun === false &&
         await enableRulesets(rulesetConfig.enabledRulesets);
 

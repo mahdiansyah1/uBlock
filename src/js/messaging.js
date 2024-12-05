@@ -1884,7 +1884,11 @@ const onMessage = function(request, sender, callback) {
             listPromises.push(
                 io.get(assetKey, { dontCache: true }).then(details => {
                     listNames.push(assetKey);
-                    return { name: assetKey, text: details.content };
+                    return {
+                        name: assetKey,
+                        text: details.content,
+                        trustedSource: assetKey.startsWith('ublock-'),
+                    };
                 })
             );
         }
